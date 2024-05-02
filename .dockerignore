@@ -1,0 +1,10 @@
+.gitignore
+.git/
+**/__pycache__/
+dockerfile
+**/*.md
+.ipynb_checkpoints
+.ipynb
+*/secret/
+*.csv
+*/config/
