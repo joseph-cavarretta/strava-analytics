@@ -1,11 +1,11 @@
 -- to run: mysql -u root -p -e "source create_database.sql"
 
-DROP DATABASE IF EXISTS `strava_staging`;
+DROP DATABASE IF EXISTS `strava`;
 
-CREATE DATABASE IF NOT EXISTS `strava_staging`;
-USE `strava_staging`;
+CREATE DATABASE IF NOT EXISTS `strava`;
+USE `strava`;
 
-CREATE TABLE IF NOT EXISTS `strava_staging`.`raw_data` (
+CREATE TABLE IF NOT EXISTS `strava`.`raw` (
     `id` INT NOT NULL, 
     `name` VARCHAR(99), 
     `start_date_local` VARCHAR(30), 
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `strava_staging`.`raw_data` (
     primary key (`id`)
 ) engine=InnoDB;
 
-CREATE TABLE IF NOT EXISTS `strava_staging`.`processed_data` (
+CREATE TABLE IF NOT EXISTS `strava`.`processed` (
     `id` INT NOT NULL, 
     `name` VARCHAR(99), 
     `start_date_local` VARCHAR(30), 

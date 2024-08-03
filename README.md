@@ -40,4 +40,4 @@ mysql --local_infile=1 -u root -p -e "source load_data.sql"
 Joseph Cavarretta |
 joseph.m.cavarretta@gmail.com |
 [Github](https://github.com/joseph-cavarretta) |
-[LinkedIn](https://www.linkedin.com/in/joseph-cavarretta-87242871/))
+[LinkedIn](https://www.linkedin.com/in/joseph-cavarretta-87242871/)

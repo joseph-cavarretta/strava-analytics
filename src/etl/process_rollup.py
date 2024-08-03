@@ -1,12 +1,13 @@
-"""
-Created on Mon Apr 5 23:19:28 2021
-@author: joseph.cavarretta
-"""
 import sys
+import os
+import datetime
 import pandas as pd
 import numpy as np
 import get_activities as strava
 
+DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
+RAW_DATA_PATH = 'data/processed/'
+OUT_PATH = f'data/processed_activities_{DATE}.csv'
 METERS_TO_MILES = 0.000621371
 METERS_TO_FEET = 3.28084
 REFRESH = False
@@ -28,17 +29,23 @@ def main():
      get_climbing_counts(data)
      save_processed_data(data)
 
+
+def get_most_recent_file():
+     last_file = os.listdir(RAW_DATA_PATH)[-1]
+     return RAW_DATA_PATH + last_file
+
+
 def load_data(refresh=REFRESH):
      if refresh:
           # refreshes all strava activities via API and saves them to strava_activities_raw.csv
           print("Refreshing activity data...")
           strava.main()
-     df = pd.read_csv('data/raw_activities.csv')
+     data = get_most_recent_file()
+     df = pd.read_csv(data)
      return df
 
 
-def process_dates(dataframe):
-     df = dataframe
+def process_dates(df):
      df['start_date_local'] = pd.to_datetime(df['start_date_local'])
      df['day_of_month'] = df['start_date_local'].dt.day
      df['day_of_year'] = df['start_date_local'].dt.dayofyear
@@ -49,8 +56,7 @@ def process_dates(dataframe):
      df['year_week'] = df['year'].astype(str) + '-' + df['week'].astype(str).str.zfill(2)
 
 
-def convert_units(dataframe):
-     df = dataframe
+def convert_units(df):
      # convert distance to miles
      df['distance'] = (df['distance'] * METERS_TO_MILES).astype(float).round(2)
      # convert elevation gain to feet
@@ -60,15 +66,7 @@ def convert_units(dataframe):
      df.rename(columns={'distance': 'miles', 'total_elevation_gain': 'elevation'}, inplace=True)
 
 
-def get_session_rpe(dataframe):
-     # perceived exertion not currently implemented in api
-     # df = dataframe
-     # df['session_load'] == (df['perceived_exertion'] * df['elapsed_time']) / 60
-     pass
-
-
-def get_bear_peak_counts(dataframe):
-     df = dataframe
+def get_bear_peak_counts(df):
      key = 'bear peak'
      key_x = f'{key} x'
      col_name = 'bear_peak_count'
@@ -90,8 +88,7 @@ def get_bear_peak_counts(dataframe):
      df.loc[criteria_3, col_name] += df.loc[criteria_3]['name'].str.strip().str[-1].astype(int)
 
 
-def get_sanitas_counts(dataframe):
-     df = dataframe
+def get_sanitas_counts(df):
      key = 'sanitas'
      key_x = f'{key} x'
      col_name = 'sanitas_count'
@@ -109,8 +106,7 @@ def get_sanitas_counts(dataframe):
      df.loc[criteria_2, col_name] = df.loc[criteria_2, col_name] = 1
 
 
-def get_second_flatiron_counts(dataframe):
-     df = dataframe
+def get_second_flatiron_counts(df):
      key = '2nd Flatiron'
      key_x = f'{key} x'
      col_name = 'second_flatiron_count'
@@ -129,8 +125,7 @@ def get_second_flatiron_counts(dataframe):
      df.loc[criteria_2, col_name] = df.loc[criteria_2, col_name] = 1
 
 
-def get_strength_counts(dataframe):
-     df = dataframe
+def get_strength_counts(df):
      df['strength_count'] = np.where((df['name'].str.contains('Strength', case=False, na=False)) & 
                                      (df['type'].str.lower() == 'weighttraining'), 1, 0)
 
@@ -138,8 +133,7 @@ def get_strength_counts(dataframe):
                                   (df['type'].str.lower() == 'weighttraining'), 1, 0)
 
 
-def get_climbing_counts(dataframe):
-     df = dataframe
+def get_climbing_counts(df):
      df['indoor_climb_count'] = np.where((df['name'].str.contains('Climb', case=False, na=False))
                                        & (df['type'].str.lower() == 'weighttraining'), 1, 0)
 
@@ -153,21 +147,17 @@ def get_climbing_counts(dataframe):
                                              & (df['type'].str.lower() == 'rockclimbing'), 1, 0)
 
 
-def get_skimo_count(dataframe):
-     # type = backcountry ski
-     pass
-
-def get_climbing_grades(dataframe):
+def get_climbing_grades(df):
      # parse grades from description
      pass
 
 
-def get_14ers_counts(dataframe):
+def get_14ers_counts(df):
      # new file with list of 14ers names
      pass
 
 
-def save_processed_data(dataframe):
+def save_processed_data(df):
      df = dataframe
      df.to_csv('data/processed_activities.csv', index=False)
      print('Data processed and file saved!')

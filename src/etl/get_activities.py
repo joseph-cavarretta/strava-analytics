@@ -1,17 +1,17 @@
-"""
-Created on Mon Apr 5 23:19:28 2021
-@author: joseph.cavarretta
-"""
-import pandas as pd
+import os
 import requests
 import json
 import time
-import configparser
+import datetime
 from pathlib import Path
+import pandas as pd
+from dotenv import load_dotenv
 
-CONFIG_PATH = Path('config/strava_API.config')
-CREDS_PATH = Path('config/strava_tokens.json')
-OUT_PATH = Path('data/raw_activities.csv')
+load_dotenv()
+
+DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
+CREDS_PATH = Path('.creds')
+OUT_PATH = Path(f'../data/raw/raw_activities_{DATE}.csv')
 
 
 def main():
@@ -34,10 +34,8 @@ def get_creds():
 
 def refresh_tokens(strava_tokens):
     print('Refreshing strava tokens...')
-    my_config_parser = configparser.ConfigParser()
-    my_config_parser.read(CONFIG_PATH)
-    client_id = my_config_parser.get('DEFAULT', 'client_id')
-    client_secret = my_config_parser.get('DEFAULT', 'client_secret')
+    client_id = os.getenv('client_id')
+    client_secret = os.getenv('client_secret')
     response = requests.post(
                     url = 'https://www.strava.com/oauth/token',
                     data = {
@@ -60,9 +58,9 @@ def get_activities(strava_tokens):
     url = "https://www.strava.com/api/v3/activities"
     access_token = strava_tokens['access_token']
 
-    # create the dataframe ready for the API call to store your activity data
+    # create the dataframe ready for the API call to store activity data
     cols = [
-        'id', 'name', 'start_date_local', 'type', 'distance', 
+        'id', 'name', 'start_date', 'start_date_local', 'type', 'distance', 
         'moving_time', 'elapsed_time', 'total_elevation_gain'
     ]
     activities = pd.DataFrame(columns=cols)
@@ -90,6 +88,7 @@ def get_activities(strava_tokens):
 def save_file(dataframe):
     dataframe.to_csv(OUT_PATH, index=False)
     print ('Activities refreshed!')
+
 
 if __name__ == '__main__':
     main()

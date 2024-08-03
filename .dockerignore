@@ -8,3 +8,5 @@ dockerfile
 */secret/
 *.csv
 */config/
+*.python-version
+*.env

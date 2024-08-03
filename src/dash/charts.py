@@ -1,5 +1,5 @@
-import pandas as pd
 from functools import reduce
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
