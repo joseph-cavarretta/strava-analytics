@@ -2,6 +2,7 @@ import sys
 import os
 import datetime
 import pandas as pd
+import numpy as np
 import get_activities as strava
 
 DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
@@ -10,6 +11,26 @@ OUT_PATH = f'../data/processed/processed_activities_{DATE}.csv'
 METERS_TO_MILES = 0.000621371
 METERS_TO_FEET = 3.28084
 REFRESH = False
+
+
+custom_routes = {
+     1: {
+          'col': 'bear_peak',
+          'name': 'bear peak',
+          'keys': ['bear peak', 'skyline'],
+          'repeat_key': 'summit repeat'
+     },
+     2: {
+          'col': 'sanitas',
+          'name': 'sanitas',
+          'keys': ['sanitas', 'skyline']
+     },
+     3: {
+          'col': '2nd_flatiron',
+          'name': '2nd flatiron',
+          'keys': ['2nd flatiron', 'freeway']
+     }
+}
 
 
 # if 'refresh' passed from CLI, call API to refresh activities before processing
@@ -23,6 +44,8 @@ def main():
      data = load_data()
      process_dates(data)
      convert_units(data)
+     for key in custom_routes.keys():
+          get_custom_route_counts(data, custom_routes, key)
      save_processed_data(data)
 
 
@@ -41,7 +64,7 @@ def load_data(refresh=REFRESH):
      return df
 
 
-def process_dates(df):
+def process_dates(df: pd.DataFrame) -> None:
      df['start_date_local'] = pd.to_datetime(df['start_date_local'])
      df['day_of_month'] = df['start_date_local'].dt.day
      df['day_of_year'] = df['start_date_local'].dt.dayofyear
@@ -52,7 +75,7 @@ def process_dates(df):
      df['year_week'] = df['year'].astype(str) + '-' + df['week_of_year'].astype(str).str.zfill(2)
 
 
-def convert_units(df):
+def convert_units(df: pd.DataFrame) -> None:
      # convert distance to miles
      df['distance'] = (df['distance'] * METERS_TO_MILES).astype(float).round(2)
      # convert elevation gain to feet
@@ -60,6 +83,64 @@ def convert_units(df):
      # convert elapsed time (seconds) to hours
      df['hours'] = (df['elapsed_time'] / 60 / 60).round(2)
      df.rename(columns={'distance': 'miles', 'total_elevation_gain': 'elevation_gain'}, inplace=True)
+
+
+def get_custom_route_counts(df: pd.DataFrame, custom_routes_dict: dict, route_key: int):
+     col = custom_routes_dict[route_key]['col']
+     name = custom_routes_dict[route_key]['name']
+     name_x = f'{name} x'
+     keys = custom_routes_dict[route_key]['keys']
+     col_name = f'{col}_count'
+     # create new column and set values to 0
+     df[col_name] = 0
+
+     # if repeated route, activity name is like '{key} x2'
+     criteria_1 = df.name.str.contains(name_x, case=False, na=False)
+     df.loc[criteria_1, col_name] = df.loc[criteria_1]['name'].str.strip().str[-1].astype(int)
+
+     # otherwise one for each single route labelled with any keys in keys list
+     criteria_2 = ((~df.name.str.contains(name_x, case=False, na=False)) &
+            df.name.str.contains('|'.join(keys), case=False, na=False, regex=True))
+     df.loc[criteria_2, col_name] = df.loc[criteria_2, col_name] + 1
+
+     if 'repeat_key' in custom_routes_dict[route_key]:
+          repeat_key = custom_routes_dict[route_key]['repeat_key']
+          # if activity name includes special repeat_key add one additional for each 
+          # will be listed like 'bear peak + summit repeat x3, which equals 4 summits
+          criteria_3 = df.name.str.contains(repeat_key, case=False, na=False)
+          df.loc[criteria_3, col_name] += df.loc[criteria_3]['name'].str.strip().str[-1].astype(int)
+
+
+def get_strength_counts(df):
+     df['strength_count'] = np.where((df['name'].str.contains('Strength', case=False, na=False)) & 
+                                     (df['type'].str.lower() == 'weighttraining'), 1, 0)
+
+     df['plyo_count'] = np.where((df['name'].str.contains('Plyo', case=False, na=False)) & 
+                                  (df['type'].str.lower() == 'weighttraining'), 1, 0)
+
+
+def get_climbing_counts(df):
+     df['indoor_climb_count'] = np.where((df['name'].str.contains('Climb', case=False, na=False))
+                                       & (df['type'].str.lower() == 'weighttraining'), 1, 0)
+
+     df['outdoor_climb_count'] = np.where((df['name'].str.contains('Climb', case=False, na=False))
+                                        & (df['type'].str.lower() == 'rockclimbing'), 1, 0)
+
+     df['indoor_boulder_count'] = np.where((df['name'].str.contains('Bouldering', case=False, na=False))
+                                            & (df['type'].str.lower() == 'weighttraining'), 1, 0)
+
+     df['outdoor_boulder_count'] = np.where((df['name'].str.contains('Bouldering', case=False, na=False))
+                                             & (df['type'].str.lower() == 'rockclimbing'), 1, 0)
+
+
+def get_climbing_grades(df):
+     # parse grades from description
+     pass
+
+
+def get_14ers_counts(df):
+     # new file with list of 14ers names
+     pass
 
 
 def save_processed_data(df):
