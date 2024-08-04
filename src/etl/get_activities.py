@@ -13,10 +13,18 @@ DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
 CREDS_PATH = Path('.creds')
 OUT_PATH = Path(f'../data/raw/raw_activities_{DATE}.csv')
 
+FINAL_COLS = [
+    'id', 'name', 'start_date', 'start_date_local', 'type', 'distance', 
+    'distance_units', 'moving_time', 'elapsed_time', 'time_units', 
+    'total_elevation_gain', 'elevation_units'
+]
+
 
 def main():
     tokens = get_creds()
     activities = get_activities(tokens)
+    add_units_columns(activities)
+    activities = order_columns(activities)
     save_file(activities)
 
 
@@ -85,8 +93,18 @@ def get_activities(strava_tokens):
     return activities
 
 
-def save_file(dataframe):
-    dataframe.to_csv(OUT_PATH, index=False)
+def add_units_columns(df):
+    df['distance_units'] = 'meters'
+    df['elevation_units'] = 'meters'
+    df['time_units'] = 'seconds'
+
+
+def order_columns(df):
+    return df[FINAL_COLS]
+
+
+def save_file(df):
+    df.to_csv(OUT_PATH, index=False)
     print ('Activities refreshed!')
 
 

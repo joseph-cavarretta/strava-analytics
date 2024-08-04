@@ -12,8 +12,14 @@ METERS_TO_MILES = 0.000621371
 METERS_TO_FEET = 3.28084
 REFRESH = False
 
+FINAL_COLS = [
+     'id', 'name', 'type', 'miles', 'moving_time_sec', 'elapsed_time_sec', 'hours',
+     'elevation_gain_ft', 'start_date', 'start_date_local',
+     'date', 'year', 'month', 'day_of_month', 'week_of_year', 'day_of_year',
+     'year_week', 'bear_peak_count', 'sanitas_count', 'second_flatiron_count'
+]
 
-custom_routes = {
+CUSTOM_ROUTES = {
      1: {
           'col': 'bear_peak',
           'name': 'bear peak',
@@ -26,12 +32,11 @@ custom_routes = {
           'keys': ['sanitas', 'skyline']
      },
      3: {
-          'col': '2nd_flatiron',
+          'col': 'second_flatiron',
           'name': '2nd flatiron',
           'keys': ['2nd flatiron', 'freeway']
      }
 }
-
 
 # if 'refresh' passed from CLI, call API to refresh activities before processing
 if len(sys.argv) > 1:
@@ -44,12 +49,13 @@ def main():
      data = load_data()
      process_dates(data)
      convert_units(data)
-     for key in custom_routes.keys():
-          get_custom_route_counts(data, custom_routes, key)
+     for key in CUSTOM_ROUTES.keys():
+          get_custom_route_counts(data, CUSTOM_ROUTES, key)
+     data = order_columns(data)
      save_processed_data(data)
 
 
-def get_most_recent_file():
+def get_most_recent_file() -> str:
      last_file = os.listdir(RAW_DATA_PATH)[-1]
      return RAW_DATA_PATH + last_file
 
@@ -82,7 +88,12 @@ def convert_units(df: pd.DataFrame) -> None:
      df['total_elevation_gain'] = (df['total_elevation_gain'] * METERS_TO_FEET).astype(float).round()
      # convert elapsed time (seconds) to hours
      df['hours'] = (df['elapsed_time'] / 60 / 60).round(2)
-     df.rename(columns={'distance': 'miles', 'total_elevation_gain': 'elevation_gain'}, inplace=True)
+     df.rename(columns={
+          'distance': 'miles', 
+          'moving_time': 'moving_time_sec',
+          'elapsed_time': 'elapsed_time_sec',
+          'total_elevation_gain': 'elevation_gain_ft'
+     }, inplace=True)
 
 
 def get_custom_route_counts(df: pd.DataFrame, custom_routes_dict: dict, route_key: int):
@@ -141,6 +152,10 @@ def get_climbing_grades(df):
 def get_14ers_counts(df):
      # new file with list of 14ers names
      pass
+
+
+def order_columns(df):
+    return df[FINAL_COLS]
 
 
 def save_processed_data(df):
