@@ -6,7 +6,7 @@ CREATE DATABASE `activities`;
 USE `activities`;
 
 CREATE TABLE `activities`.`raw` (
-    `id` INT NOT NULL PRIMARY KEY, 
+    `id` INT NOT NULL, 
     `name` VARCHAR(99),
     `start_date` VARCHAR(30),
     `start_date_local` VARCHAR(30), 
@@ -17,7 +17,8 @@ CREATE TABLE `activities`.`raw` (
     `elapsed_time` INT,
     `time_units` VARCHAR(10), 
     `total_elevation_gain` FLOAT(14,2),
-    `elevation_units` VARCHAR(10)
+    `elevation_units` VARCHAR(10),
+    PRIMARY KEY (`id`)
 ) engine=InnoDB;
 
 
@@ -42,5 +43,45 @@ CREATE TABLE `activities`.`processed` (
     `bear_peak_count` INT,
     `sanitas_count` INT,
     `second_flatiron_count` INT,
-    primary key (`id`)
+    PRIMARY KEY (`id`)
+) engine=InnoDB;
+
+CREATE TABLE `activities`.`activity` (
+    `id` INT NOT NULL, 
+    `date_id` DATE NOT NULL,
+    `type_id` INT NOT NULL,
+    `name` VARCHAR(99),
+    `miles` FLOAT(6,2),
+    `hours` FLOAT(10,2),
+    `moving_time_sec` INT,
+    `elapsed_time_sec` INT,
+    `elevation_gain_ft` FLOAT(10,2),
+    PRIMARY KEY (`id`)
+) engine=InnoDB;
+
+
+CREATE TABLE `activities`.`type` (
+    `type_id` INT NOT NULL,
+    `name` VARCHAR(99),
+    PRIMARY KEY (`type_id`)
+) engine=InnoDB;
+
+
+CREATE TABLE `activities`.`date` (
+    `date_id` DATE NOT NULL,
+    `type_id` INT NOT NULL,
+    `name` VARCHAR(99),
+    PRIMARY KEY (`date_id`)
+) engine=InnoDB;
+
+
+CREATE TABLE `activities`.`counts` (
+    `activity_id` INT NOT NULL,
+    `route1_name` VARCHAR(20),
+    `route1_count` INT,
+    `route2_name` VARCHAR(20),
+    `route2_count` INT,
+    `route3_name` VARCHAR(20),
+    `route3_count` INT,
+    PRIMARY KEY (`activity_id`)
 ) engine=InnoDB;
