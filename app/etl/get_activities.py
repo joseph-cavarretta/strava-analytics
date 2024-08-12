@@ -6,18 +6,13 @@ import datetime
 from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
+from schemas import raw_cols
 
 load_dotenv()
 
 DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
 CREDS_PATH = Path('.creds')
 OUT_PATH = Path(f'../data/raw/raw_activities_{DATE}.csv')
-
-FINAL_COLS = [
-    'id', 'name', 'start_date', 'start_date_local', 'type', 'distance', 
-    'distance_units', 'moving_time', 'elapsed_time', 'time_units', 
-    'total_elevation_gain', 'elevation_units'
-]
 
 
 def main():
@@ -100,7 +95,7 @@ def add_units_columns(df):
 
 
 def order_columns(df):
-    return df[FINAL_COLS]
+    return df[raw_cols]
 
 
 def save_file(df):

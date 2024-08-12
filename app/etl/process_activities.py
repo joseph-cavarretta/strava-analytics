@@ -4,6 +4,7 @@ import datetime
 import pandas as pd
 import numpy as np
 import get_activities as strava
+from schemas import processed_cols
 
 DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
 RAW_DATA_PATH = '../data/raw/'
@@ -12,28 +13,24 @@ METERS_TO_MILES = 0.000621371
 METERS_TO_FEET = 3.28084
 REFRESH = False
 
-FINAL_COLS = [
-     'id', 'name', 'type', 'miles', 'moving_time_sec', 'elapsed_time_sec', 'hours',
-     'elevation_gain_ft', 'start_date', 'start_date_local',
-     'date', 'year', 'month', 'day_of_month', 'week_of_year', 'day_of_year',
-     'year_week', 'bear_peak_count', 'sanitas_count', 'second_flatiron_count'
-]
-
 CUSTOM_ROUTES = {
      1: {
-          'col': 'bear_peak',
-          'name': 'bear peak',
+          'name_col': 'route1_name',
+          'count_col': 'route1_count',
+          'route_name': 'bear peak',
           'keys': ['bear peak', 'skyline'],
           'repeat_key': 'summit repeat'
      },
      2: {
-          'col': 'sanitas',
-          'name': 'sanitas',
+          'name_col': 'route2_name',
+          'count_col': 'route2_count',
+          'route_name': 'sanitas',
           'keys': ['sanitas', 'skyline']
      },
      3: {
-          'col': 'second_flatiron',
-          'name': '2nd flatiron',
+          'name_col': 'route3_name',
+          'count_col': 'route3_count',
+          'route_name': '2nd flatiron',
           'keys': ['2nd flatiron', 'freeway']
      }
 }
@@ -45,7 +42,7 @@ if len(sys.argv) > 1:
      
 
 def main():
-     # add logger for pipeline
+     # TODO: add logger for pipeline
      data = load_data()
      process_dates(data)
      convert_units(data)
@@ -62,7 +59,7 @@ def get_most_recent_file() -> str:
 
 def load_data(refresh=REFRESH):
      if refresh:
-          # refreshes all strava activities via API and saves them to strava_activities_raw.csv
+          # refreshes all strava activities from the API
           print("Refreshing activity data...")
           strava.main()
      data = get_most_recent_file()
@@ -97,29 +94,31 @@ def convert_units(df: pd.DataFrame) -> None:
 
 
 def get_custom_route_counts(df: pd.DataFrame, custom_routes_dict: dict, route_key: int):
-     col = custom_routes_dict[route_key]['col']
-     name = custom_routes_dict[route_key]['name']
-     name_x = f'{name} x'
+     name_col = custom_routes_dict[route_key]['name_col']
+     count_col = custom_routes_dict[route_key]['count_col']
+     route_name = custom_routes_dict[route_key]['route_name']
+     route_name_x = f'{route_name} x'
      keys = custom_routes_dict[route_key]['keys']
-     col_name = f'{col}_count'
+     # add new col with route name
+     df[name_col] = route_name
      # create new column and set values to 0
-     df[col_name] = 0
+     df[count_col] = 0
 
      # if repeated route, activity name is like '{key} x2'
-     criteria_1 = df.name.str.contains(name_x, case=False, na=False)
-     df.loc[criteria_1, col_name] = df.loc[criteria_1]['name'].str.strip().str[-1].astype(int)
+     criteria_1 = df.name.str.contains(route_name_x, case=False, na=False)
+     df.loc[criteria_1, count_col] = df.loc[criteria_1]['name'].str.strip().str[-1].astype(int)
 
      # otherwise one for each single route labelled with any keys in keys list
-     criteria_2 = ((~df.name.str.contains(name_x, case=False, na=False)) &
+     criteria_2 = ((~df.name.str.contains(route_name_x, case=False, na=False)) &
             df.name.str.contains('|'.join(keys), case=False, na=False, regex=True))
-     df.loc[criteria_2, col_name] = df.loc[criteria_2, col_name] + 1
+     df.loc[criteria_2, count_col] = df.loc[criteria_2, count_col] + 1
 
      if 'repeat_key' in custom_routes_dict[route_key]:
           repeat_key = custom_routes_dict[route_key]['repeat_key']
           # if activity name includes special repeat_key add one additional for each 
           # will be listed like 'bear peak + summit repeat x3, which equals 4 summits
           criteria_3 = df.name.str.contains(repeat_key, case=False, na=False)
-          df.loc[criteria_3, col_name] += df.loc[criteria_3]['name'].str.strip().str[-1].astype(int)
+          df.loc[criteria_3, count_col] += df.loc[criteria_3]['name'].str.strip().str[-1].astype(int)
 
 
 def get_strength_counts(df):
@@ -155,7 +154,7 @@ def get_14ers_counts(df):
 
 
 def order_columns(df):
-    return df[FINAL_COLS]
+    return df[processed_cols]
 
 
 def save_processed_data(df):
