@@ -7,8 +7,8 @@ import get_activities as strava
 from schemas import processed_cols
 
 DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
-RAW_DATA_PATH = '../data/raw/'
-OUT_PATH = f'../data/processed/processed_activities_{DATE}.csv'
+RAW_DATA_PATH = '/app/data/raw/'
+OUT_PATH = f'/app/data/processed/processed_activities_{DATE}.csv'
 METERS_TO_MILES = 0.000621371
 METERS_TO_FEET = 3.28084
 REFRESH = False

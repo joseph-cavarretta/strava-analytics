@@ -17,8 +17,8 @@ from schemas import (
 load_dotenv()
 
 DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
-PROCESSED_DATA_PATH = '../data/processed/'
-OUT_PATH = f'../data/warehouse/{DATE}/'
+PROCESSED_DATA_PATH = '/app/data/processed/'
+OUT_PATH = f'/app/data/warehouse/{DATE}/'
 
 
 def get_most_recent_file() -> str:
@@ -80,7 +80,7 @@ def psql_insert_multiple(data: list, table: str, columns: str) -> None:
         raise err
     else:
         conn.commit()
-        print(f'Insert query successful')
+        print(f'Insert query to {table} successful')
     finally:
          conn.close()
 

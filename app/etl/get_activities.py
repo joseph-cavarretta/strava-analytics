@@ -11,8 +11,8 @@ from schemas import raw_cols
 load_dotenv()
 
 DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
-CREDS_PATH = Path('.creds')
-OUT_PATH = Path(f'../data/raw/raw_activities_{DATE}.csv')
+CREDS_PATH = Path('/app/etl/.creds')
+OUT_PATH = Path(f'/app/data/raw/raw_activities_{DATE}.csv')
 
 
 def main():

@@ -1,0 +1,8 @@
+version: "1.0.0"
+services:
+  db:
+    build: ./database/
+  app :
+    build: ./app/
+    volumes:
+      - ./app/data/:/data
