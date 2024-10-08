@@ -36,7 +36,12 @@ processed_cols = [
     'route2_name',
     'route2_count', 
     'route3_name',
-    'route3_count'
+    'route3_count',
+    'label',
+    'type_id',
+    'date_id',
+    'activity_id',
+    'type_name'
 ]
 
 activity_cols = [
