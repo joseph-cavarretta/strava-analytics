@@ -3,11 +3,13 @@ import requests
 import json
 import time
 import datetime
+import logging
 from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 from schemas import raw_cols
 
+logger = logging.getLogger(__name__)
 load_dotenv()
 
 DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
@@ -24,7 +26,7 @@ def main():
 
 
 def get_creds():
-    print('Getting API credentials.')
+    logger.info('Getting API credentials.')
     with open(CREDS_PATH) as json_file:
         strava_tokens = json.load(json_file)
 
@@ -36,7 +38,7 @@ def get_creds():
 
 
 def refresh_tokens(strava_tokens):
-    print('Refreshing strava tokens...')
+    logger.info('Refreshing tokens...')
     client_id = os.getenv('client_id')
     client_secret = os.getenv('client_secret')
     response = requests.post(
@@ -68,7 +70,7 @@ def get_activities(strava_tokens):
     ]
     activities = pd.DataFrame(columns=cols)
 
-    print('Getting activities from strava. This may take a minute.')
+    logger.info('Getting activities from strava. This may take a minute.')
     while True:
         # get page of activities from Strava
         r = requests.get(url + '?access_token=' + access_token + '&per_page=200' + '&page=' + str(page))
@@ -84,7 +86,7 @@ def get_activities(strava_tokens):
         # increment page
         page += 1
 
-    print(f'{len(activities)} activities fetched.')
+    logger.info(f'{len(activities)} activities fetched.')
     return activities
 
 
@@ -100,7 +102,7 @@ def order_columns(df):
 
 def save_file(df):
     df.to_csv(OUT_PATH, index=False)
-    print ('Activities refreshed!')
+    logger.info('Activity refresh complete.')
 
 
 if __name__ == '__main__':

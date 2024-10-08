@@ -1,0 +1,23 @@
+colors:
+  background: '#FEDEBE'
+  yellow: '#FFAF42'
+  light orange: '#FF8303'
+  orange: '#FE6E00'
+  dark orange: '#FD5602'
+  red: '#DF2400'
+
+fonts:
+  main: 'Open Sans, Light 300'
+  title: 'Open Sans, Medium 500'
+  
+activities:
+  nonaerobic: 
+    - AlpineSki
+    - WeightTraining 
+    - Workout
+    - RockClimbing
+  strength: 
+    - WeightTraining
+    - RockClimbing
+
+charts:

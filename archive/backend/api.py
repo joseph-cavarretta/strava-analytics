@@ -25,20 +25,19 @@ def handle_exception(err):
     app.logger.error(f"{err.description}: {response['message']}")
     return jsonify(response), err.code
 
-@app.route('/', methods=['GET'])
+
+@app.route('/health', methods=['GET'])
 def index():
     """Returns message if service is running"""
-    return jsonify(message='Service is running!'), 200
+    return jsonify(message='Activity service is running!'), 200
 
 
-@app.route('/data', methods=['GET'])
+@app.route('/summary', methods=['GET'])
 def get_data():
     """Returns full processed activity dataset"""
     try:
         content = request.get_json()
-        bytes_content = content['message'].encode('utf-8')
-        token = hmac.new(bytes_content, digestmod=hashlib.sha256).hexdigest()
-        response = jsonify(message=content['message'], signature=token)
+        response = jsonify(message=content['message'])
         return response, 200
     except KeyError:
         raise MessageError('Please reformat request and try again')

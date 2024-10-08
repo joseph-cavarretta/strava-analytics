@@ -1,16 +1,3 @@
-# visit http://0.0.0.0:8050/ in your web browser.
-
-from dash import Dash, html, dcc
-import dash_bootstrap_components as dbc
-import plotly.express as px
-import pandas as pd
-import charts as charts
-
-
-app = Dash(__name__)
-df = pd.read_csv('/data/processed_activities.csv')
-
-
 app.layout = html.Div(children=[
     html.H1('Mountain Stats', id='header', style={'font-family': 'Arial'}),
     html.Div(children=[
@@ -124,7 +111,3 @@ app.layout = html.Div(children=[
         )
     ]),
 ])
-
-
-if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8050, debug=True)
