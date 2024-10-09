@@ -2,5 +2,5 @@ db:
   username: postgres
   password: postgres
   database: activities
-  host: localhost
+  host: 172.19.0.2
   port: 5432

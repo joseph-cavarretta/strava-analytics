@@ -1,7 +1,10 @@
-version: "1.0.0"
+# docker compose build <service_name> to rebuild specific servicecompose build db
 services:
   db:
     build: ./database/
+    #hostname: localhost
+    ports:
+      - 127.0.0.1:5432:5432
   app :
     build: ./app/
     volumes:

@@ -1,3 +1,4 @@
+# for database cli: psql postgresql://postgres:postgres@0.0.0.0:5432/activities
 import sys
 import datetime
 from datahandler import DataHandler
@@ -11,9 +12,9 @@ from schemas import (
 
 DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
 DB_CONF = 'config.yml'
-IN_PATH = '/app/data/raw/'
-OUT_PATH = f'/app/data/processed/processed_activities_{DATE}.csv'
-TABLES_PATH = f'/app/data/warehouse/{DATE}/'
+IN_PATH = 'data/raw/'
+OUT_PATH = f'data/processed/processed_activities_{DATE}.csv'
+TABLES_PATH = f'data/warehouse/{DATE}/'
 METERS_TO_MILES = 0.000621371
 METERS_TO_FEET = 3.28084
 CUSTOM_ROUTES = {
@@ -60,10 +61,10 @@ def main():
 
     with DbConnection(DB_CONF) as db:
         for table, columns, key in [
-        ['activities', activity_cols, 'id'],
-        ['types', type_cols, 'type_id'],
-        ['dates', date_cols, 'date_id'],
-        ['counts', counts_cols, 'activity_id']
+            ['activities', activity_cols, 'id'],
+            ['types', type_cols, 'type_id'],
+            ['dates', date_cols, 'date_id'],
+            ['counts', counts_cols, 'activity_id']
     ]:
             insert_params = data.get_table_data(
                 table,

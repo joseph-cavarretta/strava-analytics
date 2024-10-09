@@ -18,7 +18,7 @@ class DataHandler:
     ):
         self.in_path = in_path
         self.processed_out_path = processed_out_path
-        self.table_out_path = tables_out_path
+        self.tables_out_path = tables_out_path
         self.distance_conversion = distance_conversion
         self.elevation_conversion = elevation_conversion
         self.custom_fields = custom_fields
@@ -181,7 +181,7 @@ class DataHandler:
         }
         self.data['type_id'] = self.data['type'].map(types_d)
         # date id is just the date field with no "-"
-        self.data['date_id'] = self.data['date'].str.replace('-', '')
+        self.data['date_id'] = self.data['date'].astype(str).str.replace('-', '')
         # activity_id is needed as FK in counts table
         self.data['activity_id'] = self.data['id']
         self.data['type_name'] = self.data['type']
@@ -202,16 +202,16 @@ class DataHandler:
         data.to_csv(self.tables_out_path + filename, index=False)
 
 
-    def __columns_string(cols: list):
-        cols = [f'"{col}"' for col in cols]
-        return ','.join(cols)
+    @staticmethod
+    def __columns_string(columns: list) -> str:
+        return ','.join(columns)
 
-
-    def __records(self):
-        return self.data.to_records(index=False).tolist()
+    @staticmethod
+    def __records(data: pd.DataFrame) -> list:
+        return data.to_records(index=False).tolist()
     
 
-    def process(self):
+    def process(self) -> None:
         self.__process_dates()
         self.__convert_units()
         self.__get_custom_route_counts()
@@ -222,8 +222,8 @@ class DataHandler:
 
     def get_table_data(self, table: str, columns: list, sort_key: str) -> tuple:
         data = self.data.loc[:, columns].drop_duplicates().sort_values(by=sort_key)
-        records = self.__records()
-        col_str = self.__columns_string()
+        records = self.__records(data)
+        col_str = self.__columns_string(columns)
         self.__save_table_file(data, f'{table}.csv')
         Params = namedtuple('Params', ['table', 'records', 'col_string'])
         return Params(table, records, col_str)
