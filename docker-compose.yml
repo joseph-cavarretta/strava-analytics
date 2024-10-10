@@ -3,7 +3,7 @@ services:
   db:
     build: ./database/
     ports:
-      - 127.0.0.1:5432:5432
+      - 5433:5432
   app :
     build: ./app/
     volumes:
