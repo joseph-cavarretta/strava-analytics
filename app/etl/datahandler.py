@@ -33,10 +33,6 @@ class DataHandler:
             strava.main()
         data = self.__get_most_recent_file()
         return pd.read_csv(data)
-    
-
-    def __validate_params(self) -> None:
-        pass
 
 
     def __get_most_recent_file(self) -> str:
@@ -113,58 +109,6 @@ class DataHandler:
                 )
                 self.data.loc[criteria_3, count_col] += \
                     self.data.loc[criteria_3]['name'].str.strip().str[-1].astype(int)
-
-
-    def __get_strength_counts(self) -> None:
-        strength_criteria = (
-             (self.data['name'].str.contains('Strength', case=False, na=False)) 
-             & 
-             (self.data['type'].str.lower() == 'weighttraining')
-        )
-        self.data['strength_count'] = 0
-        self.data.loc[strength_criteria, 'strength_count'] += 1
-
-        plyo_criteria = (
-             (self.data['name'].str.contains('Plyo', case=False, na=False)) 
-             & 
-             (self.data['type'].str.lower() == 'weighttraining')
-        )
-        self.data['plyo_count'] = 0
-        self.data.loc[plyo_criteria, 'plyo_count'] += 1
-
-
-    def __get_climbing_counts(self) -> None:
-        indoor_climb_criteria = (
-             (self.data['name'].str.contains('Climb', case=False, na=False)) 
-             & 
-             (self.data['type'].str.lower() == 'weighttraining')
-        )
-        self.data['indoor_climb_count'] = 0
-        self.data.loc[indoor_climb_criteria, 'indoor_climb_count'] += 1
-
-        outdoor_climb_criteria = (
-             (self.data['name'].str.contains('Climb', case=False, na=False)) 
-             & 
-             (self.data['type'].str.lower() == 'rockclimbing')
-        )
-        self.data['outdoor_climb_count'] = 0
-        self.data.loc[outdoor_climb_criteria, 'outdoor_climb_count'] += 1
-
-        indoor_boulder_criteria = (
-             (self.data['name'].str.contains('Bouldering', case=False, na=False)) 
-             & 
-             (self.data['type'].str.lower() == 'weighttraining')
-        )
-        self.data['indoor_boulder_count'] = 0
-        self.data.loc[indoor_boulder_criteria, 'indoor_boulder_count'] += 1
-
-        outdoor_boulder_criteria = (
-             (self.data['name'].str.contains('Bouldering', case=False, na=False)) 
-             & 
-             (self.data['type'].str.lower() == 'rockclimbing')
-        )
-        self.data['outdoor_boulder_count'] = 0
-        self.data.loc[outdoor_boulder_criteria, 'outdoor_boulder_count'] += 1
      
 
     def __add_fk_columns(self) -> None:
