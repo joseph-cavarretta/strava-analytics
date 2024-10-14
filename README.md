@@ -1,7 +1,7 @@
 ## Overview
 This projects models activity data from the Strava API into an interactive web dashboard. User activities are extracted and transformed, modelled, and then loaded into a Postgres data warehouse hosted in a local Docker container.
 
-Apache Superset is hosted and run locally with Docker for dashboards and visualizations.21
+Apache Superset is hosted and run locally with Docker for dashboards and visualizations.
 
 
 <p align="left">

@@ -5,7 +5,7 @@ services:
     build: ./database/
     ports:
       - 5433:5432
-  app :
+  app:
     build: ./app/
     volumes:
       - ./app/data/:/data
