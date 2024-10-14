@@ -1,4 +1,5 @@
 # docker compose build <service_name> to rebuild specific servicecompose build db
+# to connect to strava db in superset: use host=host.docker.internal, port=5433
 services:
   db:
     build: ./database/

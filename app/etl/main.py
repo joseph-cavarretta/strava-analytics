@@ -1,4 +1,4 @@
-# for database cli: psql postgresql://postgres:postgres@0.0.0.0:5432/activities
+# for database cli: psql postgresql://postgres:postgres@0.0.0.0:5433/activities
 import sys
 import datetime
 from datahandler import DataHandler
