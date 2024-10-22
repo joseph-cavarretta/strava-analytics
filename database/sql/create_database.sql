@@ -70,7 +70,7 @@ CREATE TABLE activities (
 CREATE TABLE types (
     id                    SERIAL PRIMARY KEY,
     type_id               INTEGER NOT NULL,
-    type_name                  TEXT,
+    type_name             TEXT,
     label                 TYPE_LABEL
 );
 
