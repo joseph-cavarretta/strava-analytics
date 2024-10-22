@@ -16,12 +16,26 @@ Apache Superset is hosted locally in Docker for dashboards and visualizations.
 
 
 ## Run App
-Run `docker compose up` from the root of the project
+Run from the root of the project:
+```
+docker compose up
+```
+To rebuild images:
+```
+docker compose down
+docker compose build app
+docker compose build db
+```
 
 ## Dashboard
-Apache Superset is cloned and run locally with Docker: [Apache Superset](https://superset.apache.org/)
+Apache Superset is run locally with Docker: [Apache Superset](https://superset.apache.org/)\
+To connect postgres db in Superset use:
+```
+host = host.docker.internal
+port = 5433
+```
 
-## Direct Connect to Postgres Data Warehouse
+## Direct Connect to Postgres CLI
 ```
 psql postgres://postgres:postgres@0.0.0.0:5433/activities
 ```

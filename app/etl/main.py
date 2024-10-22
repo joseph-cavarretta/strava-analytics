@@ -65,7 +65,7 @@ def main():
             ['types', type_cols, 'type_id'],
             ['dates', date_cols, 'date_id'],
             ['counts', counts_cols, 'activity_id']
-    ]:
+        ]:
             insert_params = data.get_table_data(
                 table,
                 columns,
