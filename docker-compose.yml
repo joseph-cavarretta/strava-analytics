@@ -8,6 +8,9 @@ services:
   app:
     build: ./app/
     volumes:
-      - ./app/data/:/data
+      - data:/home/yosyp-cav/dev/strava-analytics/app
     depends_on:
       - db
+
+volumes:
+  data:
