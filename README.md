@@ -4,7 +4,7 @@ This projects extracts,transforms, and models activity data from the Strava API 
 Apache Superset is hosted locally in Docker for dashboards and visualizations.
 
 <p align="left">
-<img width='1200' alt='Dashboard' src='https://github.com/joseph-cavarretta/photos/blob/dda92cc6fbd0562fbd982dc71561632a98f855f6/dashboard.png?raw=true'>
+<img width='1200' alt='Dashboard' src='assets/dashboard.png'>
 </p>
 
 
