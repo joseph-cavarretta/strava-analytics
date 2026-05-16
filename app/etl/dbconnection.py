@@ -1,63 +1,51 @@
+import logging
+from types import TracebackType
+from typing import Any
+
 import psycopg2 as pg
-from psycopg2 import extras
-from psycopg2 import sql
-import yaml
+from psycopg2 import extras, sql
+
+from config import DatabaseSettings
+
+logger = logging.getLogger(__name__)
 
 
 class DbConnection:
-    def __init__(self, config_path):
-        self.conf_path = config_path
-        self.config = self.__get_config()
-        self.conn_string = self.__get_connection_string()
-        self.conn = self.__connect()
-        self.curs = self.__get_cursor()
+    """Context manager wrapping a psycopg2 connection for bulk inserts."""
 
+    def __init__(self, settings: DatabaseSettings) -> None:
+        self.settings = settings
+        self.conn = pg.connect(settings.url)
+        self.curs = self.conn.cursor()
 
-    def __enter__(self):
+    def __enter__(self) -> "DbConnection":
         return self
 
-
-    def __exit__(self, ex_type, ex_value, ex_traceback):
-        self.__close()
-
-
-    def __get_config(self):
-        with open(self.conf_path, 'r') as f:
-            return yaml.safe_load(f)
-
-
-    def __get_connection_string(self):
-        user = self.config['db']['username']
-        pw = self.config['db']['password']
-        host = self.config['db']['host']
-        port = self.config['db']['port']
-        db_name = self.config['db']['database']
-        return f'postgresql://{user}:{pw}@{host}:{port}/{db_name}'
-    
-
-    def __connect(self):
-        return pg.connect(self.conn_string)
-
-
-    def __get_cursor(self):
-        return self.conn.cursor()
-
-
-    def __close(self):
-        # if error, implicit rollback() is called for uncommited changes
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         self.conn.close()
 
-
-    def __drop_table(self, table: str):
-        queryText = f'TRUNCATE TABLE {table}'
-        query = sql.SQL(queryText).format(table=sql.Identifier(table))
+    def _truncate(self, table: str) -> None:
+        """Truncate a table before re-inserting all records."""
+        query = sql.SQL("TRUNCATE TABLE {table}").format(table=sql.Identifier(table))
         self.curs.execute(query)
 
+    def insert_multiple(self, table: str, records: list[Any], columns: str) -> None:
+        """Truncate the table and bulk-insert all records.
 
-    def insert_multiple(self, table: str, records: list, columns: str):
-        # using this syntax for inserts is faster 
-        queryText = f"""INSERT INTO {table} ({columns}) VALUES %s"""
-        query = sql.SQL(queryText).format(table=sql.Identifier(table))
-        self.__drop_table(table)
+        Args:
+            table: Target table name.
+            records: List of tuples to insert.
+            columns: Comma-separated column names matching the record tuples.
+        """
+        query = sql.SQL(f"INSERT INTO {table} ({columns}) VALUES %s").format(
+            table=sql.Identifier(table)
+        )
+        self._truncate(table)
         extras.execute_values(self.curs, query.as_string(self.curs), records)
         self.conn.commit()
+        logger.info("Inserted %d records into %s.", len(records), table)

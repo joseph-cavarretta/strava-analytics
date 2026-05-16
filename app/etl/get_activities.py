@@ -1,109 +1,130 @@
-import os
-import requests
 import json
+import logging
 import time
 import datetime
-import logging
 from pathlib import Path
+
 import pandas as pd
-from dotenv import load_dotenv
-from schemas import raw_cols
+import requests
+
+from config import StravaSettings
+from app.etl.schemas import raw_cols
 
 logger = logging.getLogger(__name__)
-load_dotenv()
 
-DATE = datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%d')
-CREDS_PATH = Path('/app/etl/.creds')
-OUT_PATH = Path(f'/app/data/raw/raw_activities_{DATE}.csv')
+DATE = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
+OUT_PATH = Path(f"/app/data/raw/raw_activities_{DATE}.csv")
 
 
-def main():
-    tokens = get_creds()
+def main() -> None:
+    """Fetch all Strava activities and write raw CSV to disk."""
+    settings = StravaSettings()
+    tokens = get_creds(settings)
     activities = get_activities(tokens)
     add_units_columns(activities)
     activities = order_columns(activities)
     save_file(activities)
 
 
-def get_creds():
-    logger.info('Getting API credentials.')
-    with open(CREDS_PATH) as json_file:
-        strava_tokens = json.load(json_file)
+def get_creds(settings: StravaSettings) -> dict:
+    """Load OAuth tokens from the creds file, refreshing if expired.
 
-    # if access_token has expired then use the refresh_tokens to get the new one
-    if strava_tokens['expires_at'] < time.time():
-        # make Strava auth API call with current refresh token
-        strava_tokens = refresh_tokens(strava_tokens)
-    return strava_tokens
+    Args:
+        settings: Strava API configuration with creds_path and secrets.
+
+    Returns:
+        Dict containing access_token, refresh_token, and expires_at.
+    """
+    logger.info("Getting API credentials.")
+    with open(settings.creds_path) as f:
+        tokens = json.load(f)
+    if tokens["expires_at"] < time.time():
+        tokens = refresh_tokens(tokens, settings)
+    return tokens
 
 
-def refresh_tokens(strava_tokens):
-    logger.info('Refreshing tokens...')
-    client_id = os.getenv('client_id')
-    client_secret = os.getenv('client_secret')
+def refresh_tokens(tokens: dict, settings: StravaSettings) -> dict:
+    """Exchange a refresh token for a new access token via the Strava API.
+
+    Args:
+        tokens: Current token dict containing refresh_token.
+        settings: Strava API configuration with client credentials.
+
+    Returns:
+        Updated token dict with new access_token and expires_at.
+    """
+    logger.info("Refreshing tokens...")
     response = requests.post(
-                    url = 'https://www.strava.com/oauth/token',
-                    data = {
-                        'client_id': f'{client_id}',
-                        'client_secret': f'{client_secret}',
-                        'grant_type': 'refresh_token',
-                        'refresh_token': strava_tokens['refresh_token']
-                    }
+        url="https://www.strava.com/oauth/token",
+        data={
+            "client_id": settings.client_id,
+            "client_secret": settings.client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": tokens["refresh_token"],
+        },
     )
-    new_strava_tokens = response.json()
-    # save new tokens to file
-    with open(CREDS_PATH, 'w') as outfile:
-        json.dump(new_strava_tokens, outfile)
-    return new_strava_tokens
+    new_tokens: dict = response.json()
+    with open(settings.creds_path, "w") as f:
+        json.dump(new_tokens, f)
+    return new_tokens
 
 
-def get_activities(strava_tokens):
-    # loop through all activities
-    page = 1
-    url = "https://www.strava.com/api/v3/activities"
-    access_token = strava_tokens['access_token']
+def get_activities(tokens: dict) -> pd.DataFrame:
+    """Fetch all activity pages from the Strava API.
 
-    # create the dataframe ready for the API call to store activity data
+    Args:
+        tokens: Valid token dict containing access_token.
+
+    Returns:
+        DataFrame with one row per activity and the standard column set.
+    """
     cols = [
-        'id', 'name', 'start_date', 'start_date_local', 'type', 'distance', 
-        'moving_time', 'elapsed_time', 'total_elevation_gain'
+        "id", "name", "start_date", "start_date_local", "type",
+        "distance", "moving_time", "elapsed_time", "total_elevation_gain",
     ]
     activities = pd.DataFrame(columns=cols)
+    page = 1
+    url = "https://www.strava.com/api/v3/activities"
 
-    logger.info('Getting activities from strava. This may take a minute.')
+    logger.info("Getting activities from Strava. This may take a minute.")
     while True:
-        # get page of activities from Strava
-        r = requests.get(url + '?access_token=' + access_token + '&per_page=200' + '&page=' + str(page))
-        r = r.json()
-        # if no results then exit loop
-        if (not r):
+        r = requests.get(
+            url,
+            params={
+                "access_token": tokens["access_token"],
+                "per_page": 200,
+                "page": page,
+            },
+        )
+        records: list = r.json()
+        if not records:
             break
-
-        # add data to dataframe
-        for x in range(len(r)):
+        for i, record in enumerate(records):
             for col in cols:
-              activities.loc[x + (page-1)*200, col] = r[x][col]  
-        # increment page
+                activities.loc[i + (page - 1) * 200, col] = record[col]
         page += 1
 
-    logger.info(f'{len(activities)} activities fetched.')
+    logger.info("%d activities fetched.", len(activities))
     return activities
 
 
-def add_units_columns(df):
-    df['distance_units'] = 'meters'
-    df['elevation_units'] = 'meters'
-    df['time_units'] = 'seconds'
+def add_units_columns(df: pd.DataFrame) -> None:
+    """Annotate the DataFrame with unit label columns in place."""
+    df["distance_units"] = "meters"
+    df["elevation_units"] = "meters"
+    df["time_units"] = "seconds"
 
 
-def order_columns(df):
+def order_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Return the DataFrame with columns reordered to the raw schema."""
     return df[raw_cols]
 
 
-def save_file(df):
+def save_file(df: pd.DataFrame) -> None:
+    """Write the activities DataFrame to the raw output CSV path."""
     df.to_csv(OUT_PATH, index=False)
-    logger.info('Activity refresh complete.')
+    logger.info("Activity refresh complete.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
