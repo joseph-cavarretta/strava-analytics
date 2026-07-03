@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pandas as pd
 
+import app.etl.schemas as schemas
 from app.etl import get_activities as strava
 from app.etl.models import TableInsertParams
-import app.etl.schemas as schemas
 
 logger = logging.getLogger(__name__)
 
@@ -63,11 +63,13 @@ class DataHandler:
     def _convert_units(self) -> None:
         """Convert distance to miles, elevation to feet, and time to hours."""
         self.data["distance"] = (
-            self.data["distance"] * self.distance_conversion
-        ).astype(float).round(2)
+            (self.data["distance"] * self.distance_conversion).astype(float).round(2)
+        )
         self.data["total_elevation_gain"] = (
-            self.data["total_elevation_gain"] * self.elevation_conversion
-        ).astype(float).round()
+            (self.data["total_elevation_gain"] * self.elevation_conversion)
+            .astype(float)
+            .round()
+        )
         # elapsed_time is in seconds; hours is used for dashboard aggregations
         self.data["hours"] = (self.data["elapsed_time"] / 3600).round(2)
         self.data.rename(
@@ -98,26 +100,26 @@ class DataHandler:
             )
 
             single = (~repeated) & (
-                self.data.name.str.contains("|".join(keys), case=False, na=False, regex=True)
+                self.data.name.str.contains(
+                    "|".join(keys), case=False, na=False, regex=True
+                )
             )
             self.data.loc[single, count_col] += 1
 
             if "repeat_key" in self.custom_fields[key]:
                 repeat_key = self.custom_fields[key]["repeat_key"]
-                has_repeat = self.data.name.str.contains(repeat_key, case=False, na=False)
+                has_repeat = self.data.name.str.contains(
+                    repeat_key, case=False, na=False
+                )
                 self.data.loc[has_repeat, count_col] += (
                     self.data.loc[has_repeat]["name"].str.strip().str[-1].astype(int)
                 )
 
     def _add_fk_columns(self) -> None:
         """Add foreign key columns for the type, date, and counts dimensions."""
-        labels_d = {
-            val: key for key, lst in schemas.type_labels.items() for val in lst
-        }
+        labels_d = {val: key for key, lst in schemas.type_labels.items() for val in lst}
         self.data["label"] = self.data["type"].map(labels_d).fillna("omit")
-        types_d = {
-            val: idx + 1 for idx, val in enumerate(self.data.type.unique())
-        }
+        types_d = {val: idx + 1 for idx, val in enumerate(self.data.type.unique())}
         self.data["type_id"] = self.data["type"].map(types_d)
         self.data["date_id"] = self.data["date"].astype(str).str.replace("-", "")
         self.data["activity_id"] = self.data["id"]

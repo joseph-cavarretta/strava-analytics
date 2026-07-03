@@ -1,3 +1,7 @@
+# Strava Analytics
+
+[![CI](https://github.com/joseph-cavarretta/strava-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/joseph-cavarretta/strava-analytics/actions/workflows/ci.yml)
+
 ## Overview
 
 ETL pipeline that extracts activity data from the Strava API, transforms it with Pandas, and loads it into a PostgreSQL data warehouse. Apache Superset is used for dashboards and visualizations. The full stack runs locally in Docker.
