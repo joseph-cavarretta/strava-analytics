@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "ETL pipeline for Strava activity data with Postgres and Superset"
 requires-python = ">=3.12"
 dependencies = [
-    "pandas>=2.2.3",
+    "pandas>=2.2.3,<3",
     "psycopg2-binary>=2.9.9",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
@@ -23,7 +23,7 @@ line-length = 88
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "N", "UP", "B", "SIM"]
+select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "S"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]

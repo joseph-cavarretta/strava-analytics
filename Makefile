@@ -1,3 +1,18 @@
+.PHONY: install lint format check
+
+install:
+	uv sync
+
+lint:
+	uv run ruff check .
+
+format:
+	uv run ruff format .
+
+check:
+	uv run ruff check .
+	uv run ruff format --check .
+
 run:
 	docker compose up
 

@@ -56,6 +56,7 @@ def refresh_tokens(tokens: dict, settings: StravaSettings) -> dict:
     logger.info("Refreshing tokens...")
     response = requests.post(
         url="https://www.strava.com/oauth/token",
+        timeout=30,
         data={
             "client_id": settings.client_id,
             "client_secret": settings.client_secret,
@@ -97,6 +98,7 @@ def get_activities(tokens: dict) -> pd.DataFrame:
     while True:
         r = requests.get(
             url,
+            timeout=30,
             params={
                 "access_token": tokens["access_token"],
                 "per_page": 200,

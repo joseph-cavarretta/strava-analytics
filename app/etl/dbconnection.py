@@ -42,8 +42,11 @@ class DbConnection:
             records: List of tuples to insert.
             columns: Comma-separated column names matching the record tuples.
         """
-        query = sql.SQL(f"INSERT INTO {table} ({columns}) VALUES %s").format(
-            table=sql.Identifier(table)
+        query = sql.SQL("INSERT INTO {table} ({columns}) VALUES %s").format(
+            table=sql.Identifier(table),
+            columns=sql.SQL(", ").join(
+                sql.Identifier(col) for col in columns.split(",")
+            ),
         )
         self._truncate(table)
         extras.execute_values(self.curs, query.as_string(self.curs), records)
