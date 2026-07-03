@@ -1,14 +1,14 @@
+import datetime
 import json
 import logging
 import time
-import datetime
 from pathlib import Path
 
 import pandas as pd
 import requests
 
-from config import StravaSettings
 from app.etl.schemas import raw_cols
+from config import StravaSettings
 
 logger = logging.getLogger(__name__)
 
@@ -79,8 +79,15 @@ def get_activities(tokens: dict) -> pd.DataFrame:
         DataFrame with one row per activity and the standard column set.
     """
     cols = [
-        "id", "name", "start_date", "start_date_local", "type",
-        "distance", "moving_time", "elapsed_time", "total_elevation_gain",
+        "id",
+        "name",
+        "start_date",
+        "start_date_local",
+        "type",
+        "distance",
+        "moving_time",
+        "elapsed_time",
+        "total_elevation_gain",
     ]
     activities = pd.DataFrame(columns=cols)
     page = 1

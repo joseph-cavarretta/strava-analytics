@@ -2,10 +2,10 @@ import datetime
 import logging
 import sys
 
-from config import get_settings
 from app.etl.datahandler import DataHandler
 from app.etl.dbconnection import DbConnection
-from app.etl.schemas import activity_cols, date_cols, type_cols, counts_cols
+from app.etl.schemas import activity_cols, counts_cols, date_cols, type_cols
+from config import get_settings
 
 logging.basicConfig(
     level=logging.INFO,
