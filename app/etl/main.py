@@ -4,6 +4,7 @@ import sys
 
 from app.etl.datahandler import DataHandler
 from app.etl.dbconnection import DbConnection
+from app.etl.models import RouteConfig
 from app.etl.schemas import activity_cols, counts_cols, date_cols, type_cols
 from config import get_settings
 
@@ -15,26 +16,26 @@ logger = logging.getLogger(__name__)
 
 METERS_TO_MILES = 0.000621371
 METERS_TO_FEET = 3.28084
-CUSTOM_ROUTES = {
-    1: {
-        "name_col": "route1_name",
-        "count_col": "route1_count",
-        "route_name": "bear peak",
-        "keys": ["bear peak", "skyline"],
-        "repeat_key": "summit repeat",
-    },
-    2: {
-        "name_col": "route2_name",
-        "count_col": "route2_count",
-        "route_name": "sanitas",
-        "keys": ["sanitas", "skyline"],
-    },
-    3: {
-        "name_col": "route3_name",
-        "count_col": "route3_count",
-        "route_name": "2nd flatiron",
-        "keys": ["2nd flatiron", "freeway"],
-    },
+CUSTOM_ROUTES: dict[int, RouteConfig] = {
+    1: RouteConfig(
+        name_col="route1_name",
+        count_col="route1_count",
+        route_name="bear peak",
+        keys=["bear peak", "skyline"],
+        repeat_key="summit repeat",
+    ),
+    2: RouteConfig(
+        name_col="route2_name",
+        count_col="route2_count",
+        route_name="sanitas",
+        keys=["sanitas", "skyline"],
+    ),
+    3: RouteConfig(
+        name_col="route3_name",
+        count_col="route3_count",
+        route_name="2nd flatiron",
+        keys=["2nd flatiron", "freeway"],
+    ),
 }
 
 
