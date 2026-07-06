@@ -1,12 +1,11 @@
 import logging
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 
 import app.etl.schemas as schemas
 from app.etl import get_activities as strava
-from app.etl.models import TableInsertParams
+from app.etl.models import RouteConfig, TableInsertParams
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ class DataHandler:
         tables_out_path: Path,
         distance_conversion: float = 1.0,
         elevation_conversion: float = 1.0,
-        custom_fields: dict[int, dict[str, Any]] | None = None,
+        custom_fields: dict[int, RouteConfig] | None = None,
         refresh: bool = False,
     ) -> None:
         self.in_path = in_path
@@ -85,12 +84,12 @@ class DataHandler:
 
     def _get_custom_route_counts(self) -> None:
         """Derive per-route repeat counts from activity name patterns."""
-        for key in self.custom_fields:
-            name_col = self.custom_fields[key]["name_col"]
-            count_col = self.custom_fields[key]["count_col"]
-            route_name = self.custom_fields[key]["route_name"]
+        for route in self.custom_fields.values():
+            name_col = route.name_col
+            count_col = route.count_col
+            route_name = route.route_name
             route_name_x = f"{route_name} x"
-            keys = self.custom_fields[key]["keys"]
+            keys = route.keys
 
             self.data[name_col] = route_name
             self.data[count_col] = 0
@@ -107,8 +106,8 @@ class DataHandler:
             )
             self.data.loc[single, count_col] += 1
 
-            if "repeat_key" in self.custom_fields[key]:
-                repeat_key = self.custom_fields[key]["repeat_key"]
+            if route.repeat_key is not None:
+                repeat_key = route.repeat_key
                 has_repeat = self.data.name.str.contains(
                     repeat_key, case=False, na=False
                 )
