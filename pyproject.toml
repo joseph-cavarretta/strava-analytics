@@ -32,3 +32,5 @@ known-first-party = ["src"]
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
+explicit_package_bases = true
+plugins = ["pydantic.mypy"]

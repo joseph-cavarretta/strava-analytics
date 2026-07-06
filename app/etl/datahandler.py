@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
@@ -20,7 +21,7 @@ class DataHandler:
         tables_out_path: Path,
         distance_conversion: float = 1.0,
         elevation_conversion: float = 1.0,
-        custom_fields: dict | None = None,
+        custom_fields: dict[int, dict[str, Any]] | None = None,
         refresh: bool = False,
     ) -> None:
         self.in_path = in_path

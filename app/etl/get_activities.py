@@ -3,6 +3,7 @@ import json
 import logging
 import time
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import requests
@@ -26,7 +27,7 @@ def main() -> None:
     save_file(activities)
 
 
-def get_creds(settings: StravaSettings) -> dict:
+def get_creds(settings: StravaSettings) -> dict[str, Any]:
     """Load OAuth tokens from the creds file, refreshing if expired.
 
     Args:
@@ -37,13 +38,13 @@ def get_creds(settings: StravaSettings) -> dict:
     """
     logger.info("Getting API credentials.")
     with open(settings.creds_path) as f:
-        tokens = json.load(f)
+        tokens: dict[str, Any] = json.load(f)
     if tokens["expires_at"] < time.time():
         tokens = refresh_tokens(tokens, settings)
     return tokens
 
 
-def refresh_tokens(tokens: dict, settings: StravaSettings) -> dict:
+def refresh_tokens(tokens: dict[str, Any], settings: StravaSettings) -> dict[str, Any]:
     """Exchange a refresh token for a new access token via the Strava API.
 
     Args:
@@ -64,13 +65,13 @@ def refresh_tokens(tokens: dict, settings: StravaSettings) -> dict:
             "refresh_token": tokens["refresh_token"],
         },
     )
-    new_tokens: dict = response.json()
+    new_tokens: dict[str, Any] = response.json()
     with open(settings.creds_path, "w") as f:
         json.dump(new_tokens, f)
     return new_tokens
 
 
-def get_activities(tokens: dict) -> pd.DataFrame:
+def get_activities(tokens: dict[str, Any]) -> pd.DataFrame:
     """Fetch all activity pages from the Strava API.
 
     Args:
@@ -105,7 +106,7 @@ def get_activities(tokens: dict) -> pd.DataFrame:
                 "page": page,
             },
         )
-        records: list = r.json()
+        records: list[dict[str, Any]] = r.json()
         if not records:
             break
         for i, record in enumerate(records):
