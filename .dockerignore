@@ -1,4 +1,7 @@
 .gitignore
+.venv
+.mypy_cache
+.ruff_cache
 .git/
 **/__pycache__/
 dockerfile

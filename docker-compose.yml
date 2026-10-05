@@ -6,9 +6,12 @@ services:
     ports:
       - 5433:5432
   app:
-    build: ./app/
+    build:
+      context: .
+      dockerfile: app/Dockerfile
     volumes:
-      - data:/app
+      # Only the data persists; mounting all of /app kept serving the first build's code.
+      - data:/app/data
     depends_on:
       - db
 

@@ -1,2 +1,2 @@
 #!/bin/bash
-python3 /app/etl/main.py refresh
+exec python -m app.etl.main refresh
