@@ -14,23 +14,25 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=8.0.0",
-    "mypy>=1.0.0",
-    "ruff>=0.4.0",
+    "mypy>=1.10",
+    "ruff>=0.16",
+    "pandas-stubs>=3.0.5.260914",
+    "types-requests>=2.33.0.20260906",
 ]
 
 [tool.ruff]
-line-length = 88
-target-version = "py312"
-
-[tool.ruff.lint]
-select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "S"]
+extend = "../agent-dev-harness/python-styleguide/ruff-base.toml"
 
 [tool.ruff.lint.isort]
-known-first-party = ["src"]
+known-first-party = ["app"]
 
 [tool.mypy]
-python_version = "3.12"
 strict = true
-ignore_missing_imports = true
-explicit_package_bases = true
+# Same loose paths as the lint baseline: scripts/ and .local/ are not checked.
+exclude = ['(^|/)scripts/', '(^|/)\.local/']
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+# These packages ship no type information.
+module = ["psycopg2.*"]
+ignore_missing_imports = true
