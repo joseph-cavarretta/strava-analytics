@@ -1,6 +1,6 @@
 import logging
+from collections.abc import Sequence
 from types import TracebackType
-from typing import Any
 
 import psycopg2 as pg
 from psycopg2 import extras, sql
@@ -34,13 +34,13 @@ class DbConnection:
         query = sql.SQL("TRUNCATE TABLE {table}").format(table=sql.Identifier(table))
         self.curs.execute(query)
 
-    def insert_multiple(self, table: str, records: list[Any], columns: str) -> None:
-        """Truncate the table and bulk-insert all records.
+    def insert_multiple(
+        self, table: str, records: Sequence[tuple[object, ...]], columns: str
+    ) -> None:
+        """Replace the table's contents with records.
 
-        Args:
-            table: Target table name.
-            records: List of tuples to insert.
-            columns: Comma-separated column names matching the record tuples.
+        columns is a comma-separated list naming the fields of each record tuple, in
+        order. The table is truncated first, so this is a full reload, not an append.
         """
         query = sql.SQL("INSERT INTO {table} ({columns}) VALUES %s").format(
             table=sql.Identifier(table),
