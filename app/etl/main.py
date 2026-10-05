@@ -4,45 +4,52 @@ import sys
 
 from app.etl.datahandler import DataHandler
 from app.etl.dbconnection import DbConnection
+from app.etl.get_activities import fetch_activities
+from app.etl.models import CustomRoute
 from app.etl.schemas import activity_cols, counts_cols, date_cols, type_cols
 from config import get_settings
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
 logger = logging.getLogger(__name__)
 
 METERS_TO_MILES = 0.000621371
 METERS_TO_FEET = 3.28084
-CUSTOM_ROUTES = {
-    1: {
-        "name_col": "route1_name",
-        "count_col": "route1_count",
-        "route_name": "bear peak",
-        "keys": ["bear peak", "skyline"],
-        "repeat_key": "summit repeat",
-    },
-    2: {
-        "name_col": "route2_name",
-        "count_col": "route2_count",
-        "route_name": "sanitas",
-        "keys": ["sanitas", "skyline"],
-    },
-    3: {
-        "name_col": "route3_name",
-        "count_col": "route3_count",
-        "route_name": "2nd flatiron",
-        "keys": ["2nd flatiron", "freeway"],
-    },
-}
+CUSTOM_ROUTES = (
+    CustomRoute(
+        name_col="route1_name",
+        count_col="route1_count",
+        route_name="bear peak",
+        keys=["bear peak", "skyline"],
+        repeat_key="summit repeat",
+    ),
+    CustomRoute(
+        name_col="route2_name",
+        count_col="route2_count",
+        route_name="sanitas",
+        keys=["sanitas", "skyline"],
+    ),
+    CustomRoute(
+        name_col="route3_name",
+        count_col="route3_count",
+        route_name="2nd flatiron",
+        keys=["2nd flatiron", "freeway"],
+    ),
+)
 
 
 def main() -> None:
     """Run the full ETL pipeline: extract, transform, and load into Postgres."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
     settings = get_settings()
     date = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d")
-    refresh = len(sys.argv) > 1 and sys.argv[1].lower() == "refresh"
+
+    if len(sys.argv) > 1 and sys.argv[1].lower() == "refresh":
+        logger.info("Refreshing activity data from Strava API...")
+        fetch_activities(
+            settings.strava, settings.data_in_path / f"raw_activities_{date}.csv"
+        )
 
     data = DataHandler(
         in_path=settings.data_in_path,
@@ -50,8 +57,7 @@ def main() -> None:
         tables_out_path=settings.tables_out_path / date,
         distance_conversion=METERS_TO_MILES,
         elevation_conversion=METERS_TO_FEET,
-        custom_fields=CUSTOM_ROUTES,
-        refresh=refresh,
+        custom_routes=CUSTOM_ROUTES,
     )
     data.process()
 
