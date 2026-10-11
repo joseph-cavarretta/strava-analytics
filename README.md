@@ -100,7 +100,6 @@ Activities are normalized into four tables:
 ├── docker-compose.yml
 ├── app/
 │   ├── Dockerfile
-│   ├── requirements.txt
 │   ├── config.yml              # database connection config
 │   └── etl/
 │       ├── main.py             # pipeline entrypoint
